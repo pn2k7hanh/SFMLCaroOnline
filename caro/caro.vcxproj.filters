@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Resource Files\Images">
+      <UniqueIdentifier>{2aee6e08-a604-4701-8c20-0b5bc82bf2af}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -23,6 +26,9 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="images.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="images.rc">
@@ -31,19 +37,19 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="images\board.bmp">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Images</Filter>
     </Image>
     <Image Include="images\o.bmp">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Images</Filter>
     </Image>
     <Image Include="images\os.bmp">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Images</Filter>
     </Image>
     <Image Include="images\x.bmp">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Images</Filter>
     </Image>
     <Image Include="images\xs.bmp">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Images</Filter>
     </Image>
   </ItemGroup>
 </Project>
