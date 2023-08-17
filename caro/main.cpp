@@ -14,32 +14,28 @@ int main(int argc, char** argv)
 {
 	RenderWindow window(VideoMode(800,600),"Caro");
 
-	HMODULE bModule = GetModuleHandle(nullptr);
-	HRSRC bResource = FindResource(bModule, MAKEINTRESOURCE(IDB_BITMAP1), RT_BITMAP);
+	HBITMAP bitmap = LoadBitmap(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDB_BITMAP1));
+	if (bitmap == nullptr)
+	{
+		cout << "No" << endl;
+		return -1;
+	}
 
-	HGLOBAL bLoadedResource = LoadResource(nullptr, bResource);
+	BITMAP info;
+	GetObject(bitmap,sizeof(BITMAP),&info);
 
-	LPVOID bResourceData = LockResource(bLoadedResource);
+	HDC hdc = CreateCompatibleDC(nullptr);
+	SelectObject(hdc,bitmap);
 
-	BITMAPINFOHEADER* bBitmapInfoHeader = reinterpret_cast<BITMAPINFOHEADER*>(bResourceData);
+	Image image;
+	image.create(info.bmWidth, info.bmHeight, reinterpret_cast<const sf::Uint8*>(info.bmBits));
 
-	int width = bBitmapInfoHeader->biWidth;
-	int height = bBitmapInfoHeader->biHeight;
-	int bpp = bBitmapInfoHeader->biBitCount;
+	Texture texture;
+	texture.loadFromImage(image);
 
-	int size = width * height * (bpp / 8);
+	Sprite sprite(texture);
 
-	BYTE* bPixelData = reinterpret_cast<BYTE*>(bResourceData) + sizeof(BITMAPINFOHEADER);
 
-	Texture board;
-	board.loadFromMemory(bPixelData,size);
-
-	Sprite sprite(board);
-
-	cout << width << endl;
-	cout << height << endl;
-	cout << bpp / 8 << endl;
-	cout << size << endl;
 
 
 
