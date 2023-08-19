@@ -3,29 +3,90 @@
 
 #include "texture.h"
 
+#include <iostream>
+using std::cout;
+using std::endl;
+
 bool isInitTexture = false;
-namespace Tex {
-	sf::Texture up, down, left, right, upleft, upright, downleft, downright, box, boxx, boxxs, boxo, boxos;
+
+sf::Texture *TexUp, 
+			*TexDown, 
+			*TexLeft, 
+			*TexRight, 
+			*TexUpLeft, 
+			*TexUpRight, 
+			*TexDownLeft, 
+			*TexDownRight, 
+			*TexBox, 
+			*TexBoxX, 
+			*TexBoxXs, 
+			*TexBoxO, 
+			*TexBoxOs;
+
+bool IsInitTexture()
+{
+	return isInitTexture;
+}
+
+void CreateTexture()
+{
+	cout << "Create Texture" << endl;
+	TexUp = new sf::Texture;
+	TexDown = new sf::Texture;
+	TexLeft = new sf::Texture;
+	TexRight = new sf::Texture;
+	TexUpLeft = new sf::Texture;
+	TexUpRight = new sf::Texture;
+	TexDownLeft = new sf::Texture;
+	TexDownRight = new sf::Texture;
+	TexBox = new sf::Texture;
+	TexBoxX = new sf::Texture;
+	TexBoxXs = new sf::Texture;
+	TexBoxO = new sf::Texture;
+	TexBoxOs = new sf::Texture;
 }
 
 void InitTexture()
 {
-	if (isInitTexture) return;
-	if (!isInitImage) InitImage();
+	if (IsInitTexture()) return;
+	if (IsInitImage()) InitImage();
 
-	Tex::up.loadFromImage(Board, sf::IntRect(u.x, u.y, u.w, u.h));
-	Tex::down.loadFromImage(Board, sf::IntRect(d.x, d.y, d.w, d.h));
-	Tex::left.loadFromImage(Board, sf::IntRect(l.x, l.y, l.w, l.h));
-	Tex::right.loadFromImage(Board, sf::IntRect(r.x, r.y, r.w, r.h));
-	Tex::upleft.loadFromImage(Board, sf::IntRect(ul.x, ul.y, ul.w, ul.h));
-	Tex::upright.loadFromImage(Board, sf::IntRect(ur.x, ur.y, ur.w, ur.h));
-	Tex::downleft.loadFromImage(Board, sf::IntRect(dl.x, dl.y, dl.w, dl.h));
-	Tex::downright.loadFromImage(Board, sf::IntRect(dr.x, dr.y, dr.w, dr.h));
-	Tex::box.loadFromImage(Board, sf::IntRect(bx.x, bx.y, bx.w, bx.h));
-	Tex::boxx.loadFromImage(BoxX, sf::IntRect(x.x, x.y, x.w, x.h));
-	Tex::boxxs.loadFromImage(BoxX, sf::IntRect(xs.x, xs.y, xs.w, xs.h));
-	Tex::boxo.loadFromImage(BoxO, sf::IntRect(o.x, o.y, o.w, o.h));
-	Tex::boxos.loadFromImage(BoxO, sf::IntRect(os.x, os.y, os.w, os.h));
+	CreateTexture();
+
+	TexUp->loadFromImage(*GetImage(u.id), sf::IntRect(u.x, u.y, u.w, u.h));
+	TexDown->loadFromImage(*GetImage(d.id), sf::IntRect(d.x, d.y, d.w, d.h));
+	TexLeft->loadFromImage(*GetImage(l.id), sf::IntRect(l.x, l.y, l.w, l.h));
+	TexRight->loadFromImage(*GetImage(r.id), sf::IntRect(r.x, r.y, r.w, r.h));
+	TexUpLeft->loadFromImage(*GetImage(ul.id), sf::IntRect(ul.x, ul.y, ul.w, ul.h));
+	TexUpRight->loadFromImage(*GetImage(ur.id), sf::IntRect(ur.x, ur.y, ur.w, ur.h));
+	TexDownLeft->loadFromImage(*GetImage(dl.id), sf::IntRect(dl.x, dl.y, dl.w, dl.h));
+	TexDownRight->loadFromImage(*GetImage(dr.id), sf::IntRect(dr.x, dr.y, dr.w, dr.h));
+	TexBox->loadFromImage(*GetImage(bx.id), sf::IntRect(bx.x, bx.y, bx.w, bx.h));
+	TexBoxX->loadFromImage(*GetImage(x.id), sf::IntRect(x.x, x.y, x.w, x.h));
+	TexBoxXs->loadFromImage(*GetImage(xs.id), sf::IntRect(xs.x, xs.y, xs.w, xs.h));
+	TexBoxO->loadFromImage(*GetImage(o.id), sf::IntRect(o.x, o.y, o.w, o.h));
+	TexBoxOs->loadFromImage(*GetImage(os.id), sf::IntRect(os.x, os.y, os.w, os.h));
 
 	isInitTexture = true;
+}
+
+sf::Texture* GetTexture(Tex::Id id)
+{
+	switch (id)
+	{
+	case Tex::Up: return TexUp;
+	case Tex::Down: return TexDown;
+	case Tex::Left: return TexLeft;
+	case Tex::Right: return TexRight;
+	case Tex::UpLeft: return TexUpLeft;
+	case Tex::UpRight: return TexUpRight;
+	case Tex::DownLeft: return TexDownLeft;
+	case Tex::DownRight: return TexDownRight;
+	case Tex::Box: return TexBox;
+	case Tex::BoxX: return TexBoxX;
+	case Tex::BoxXs: return TexBoxXs;
+	case Tex::BoxO: return TexBoxO;
+	case Tex::BoxOs: return TexBoxOs;
+	}
+	return nullptr;
 }
