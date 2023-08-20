@@ -19,7 +19,8 @@ const struct
 	x{ Img::BoxX,0,0,24,24 },
 	xs{ Img::BoxXs,0,0,24,24 },
 	o{ Img::BoxO,0,0,24,24 },
-	os{ Img::BoxOs,0,0,24,24 };
+	os{ Img::BoxOs,0,0,24,24 },
+	bs{ Img::BoxS,0,0,24,24 };
 
 namespace Tex
 {
@@ -37,7 +38,8 @@ namespace Tex
 		BoxX,
 		BoxXs,
 		BoxO,
-		BoxOs
+		BoxOs,
+		BoxS
 	};
 }
 

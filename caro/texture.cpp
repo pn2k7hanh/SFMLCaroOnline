@@ -21,7 +21,8 @@ sf::Texture *TexUp,
 			*TexBoxX, 
 			*TexBoxXs, 
 			*TexBoxO, 
-			*TexBoxOs;
+			*TexBoxOs,
+			*TexBoxS;
 
 bool IsInitTexture()
 {
@@ -30,7 +31,6 @@ bool IsInitTexture()
 
 void CreateTexture()
 {
-	cout << "Create Texture" << endl;
 	TexUp = new sf::Texture;
 	TexDown = new sf::Texture;
 	TexLeft = new sf::Texture;
@@ -44,6 +44,7 @@ void CreateTexture()
 	TexBoxXs = new sf::Texture;
 	TexBoxO = new sf::Texture;
 	TexBoxOs = new sf::Texture;
+	TexBoxS = new sf::Texture;
 }
 
 void InitTexture()
@@ -66,6 +67,7 @@ void InitTexture()
 	TexBoxXs->loadFromImage(*GetImage(xs.id), sf::IntRect(xs.x, xs.y, xs.w, xs.h));
 	TexBoxO->loadFromImage(*GetImage(o.id), sf::IntRect(o.x, o.y, o.w, o.h));
 	TexBoxOs->loadFromImage(*GetImage(os.id), sf::IntRect(os.x, os.y, os.w, os.h));
+	TexBoxS->loadFromImage(*GetImage(bs.id), sf::IntRect(bs.x, bs.y, bs.w, bs.h));
 
 	isInitTexture = true;
 }
@@ -87,6 +89,7 @@ sf::Texture* GetTexture(Tex::Id id)
 	case Tex::BoxXs: return TexBoxXs;
 	case Tex::BoxO: return TexBoxO;
 	case Tex::BoxOs: return TexBoxOs;
+	case Tex::BoxS: return TexBoxS;
 	}
 	return nullptr;
 }

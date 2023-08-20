@@ -10,7 +10,7 @@ using std::endl;
 
 bool isInitImage = false;
 
-sf::Image *Board, *BoxX, *BoxXs, *BoxO, *BoxOs;
+sf::Image *Board, *BoxX, *BoxXs, *BoxO, *BoxOs, *BoxS;
 
 
 void LoadImage(HDC &hdc,BYTE id,sf::Image *image)
@@ -43,6 +43,7 @@ void CreateImage()
 	BoxXs = new sf::Image;
 	BoxO = new sf::Image;
 	BoxOs = new sf::Image;
+	BoxS = new sf::Image;
 }
 
 bool IsInitImage()
@@ -63,6 +64,7 @@ void InitImage()
 	LoadImage(hdc, IDB_BOXXS, BoxXs);
 	LoadImage(hdc, IDB_BOXO, BoxO);
 	LoadImage(hdc, IDB_BOXOS, BoxOs);
+	LoadImage(hdc, IDB_BOXS, BoxS);
 
 	DeleteDC(hdc);
 
@@ -78,6 +80,7 @@ const sf::Image* GetImage(Img::Id id)
 	case Img::BoxXs: return BoxXs;
 	case Img::BoxO: return BoxO;
 	case Img::BoxOs: return BoxOs;
+	case Img::BoxS: return BoxS;
 	}
 	return nullptr;
 }

@@ -98,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="images\board.bmp" />
+    <Image Include="images\bs.bmp" />
     <Image Include="images\o.bmp" />
     <Image Include="images\os.bmp" />
     <Image Include="images\x.bmp" />

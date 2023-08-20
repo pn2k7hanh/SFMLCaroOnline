@@ -6,6 +6,7 @@
 #define IDB_BOXXS IDB_BITMAP5
 #define IDB_BOXO IDB_BITMAP2
 #define IDB_BOXOS IDB_BITMAP3
+#define IDB_BOXS IDB_BITMAP6
 
 namespace Img
 {
@@ -15,7 +16,8 @@ namespace Img
 		BoxX,
 		BoxXs,
 		BoxO,
-		BoxOs
+		BoxOs,
+		BoxS
 	};
 }
 
