@@ -60,6 +60,8 @@ IDB_BITMAP4             BITMAP                  "images\\x.bmp"
 
 IDB_BITMAP5             BITMAP                  "images\\xs.bmp"
 
+IDB_BITMAP6             BITMAP                  "images\\bs.bmp"
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
