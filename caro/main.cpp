@@ -1,5 +1,6 @@
 ﻿#include <SFML/Graphics.hpp>
 
+
 #include "resource.h"
 #include "images.h"
 #include "texture.h"
@@ -62,14 +63,16 @@ int main(int argc, char** argv)
 
 	// Mouse Event
 	int preX = 0, preY = 0;
+	int oldX = (m - 1) / 2;
+	int oldY = (n - 1) / 2;
 	bool preSelected = false;
 	bool mouseMoved = false;
 	bool mousePressed = false;
 	bool mouseReleased = false;
 
 	// Key Event
-	map<Keyboard::Key, pair<float, float>> keys; // first is delay; second is time
-	int keyboardFirstDelay = 150;
+	map<Keyboard::Key, pair<int, int>> keys; // first is delay; second is time
+	int keyboardFirstDelay = 125;
 	int keyboardSecondDelay = 75;
 
 	// Select Box Move
@@ -79,19 +82,32 @@ int main(int argc, char** argv)
 	bool selected = false;
 
 	// Field
-	int** field;
-	field = new int* [m];
+	enum class Caro
+	{
+		X,
+		O,
+		None
+	} **field, turn = Caro::X;
+
+	field = new Caro* [m];
 	for (int i = 0; i < m; i++)
 	{
-		field[i] = new int[n];
+		field[i] = new Caro[n];
+		for (int j = 0; j < n; j++)
+		{
+			field[i][j] = Caro::None;
+		}
 	}
+
+	
 
 	while (window.isOpen())
 	{
-		float time = clock.getElapsedTime().asMilliseconds();
+		int time = clock.getElapsedTime().asMilliseconds();
+
 		if (!keys.empty())
 		{
-			for (map<Keyboard::Key, pair<float, float>>::iterator i = keys.begin(); i != keys.end(); i++)
+			for (map<Keyboard::Key, pair<int, int>>::iterator i = keys.begin(); i != keys.end(); i++)
 			{
 				i->second.second += time;
 			}
@@ -102,7 +118,6 @@ int main(int argc, char** argv)
 		Event event;
 		while (window.pollEvent(event))
 		{
-			
 			switch (event.type)
 			{
 			case Event::Closed:
@@ -128,7 +143,6 @@ int main(int argc, char** argv)
 				else
 				{
 					keys.insert({ event.key.code,{0,0} });
-					preSelected = false;
 				}
 				break;
 			case Event::KeyReleased:
@@ -137,7 +151,11 @@ int main(int argc, char** argv)
 				{
 					if (preSelected)
 					{
-						selected = true;
+						if (x == preX && y == preY)
+						{
+							selected = true;
+						}
+						preSelected = false;
 					}
 				}
 				else keys.erase(event.key.code);
@@ -148,7 +166,7 @@ int main(int argc, char** argv)
 		// Keyboard
 		if (!keys.empty())
 		{
-			for (map<Keyboard::Key, pair<float, float>>::iterator i = keys.begin(); i != keys.end(); i++)
+			for (map<Keyboard::Key, pair<int, int>>::iterator i = keys.begin(); i != keys.end(); i++)
 			{
 				if (i->second.second >= i->second.first)
 				{
@@ -205,13 +223,17 @@ int main(int argc, char** argv)
 		{
 			Vector2i mouse = Mouse::getPosition(window);
 			
+			oldX = x;
+			oldY = y;
+
 			x = (mouse.x - mleft - ul.w) / bx.w;
 			y = (mouse.y - mtop - ul.h) / bx.h;
 
+
 			if (!(0 <= x && x < m && 0 <= y && y < n))
 			{
-				x = (m - 1) / 2;
-				y = (n - 1) / 2;
+				x = oldX;
+				y = oldY;
 			}
 
 			mouseMoved = false;
@@ -226,7 +248,7 @@ int main(int argc, char** argv)
 				preY = (mouse.y - mtop - ul.h) / bx.h;
 				if (0 <= preX && preX < m && 0 <= preY && preY < n)
 				{
-					preSelected = true;
+					if (field[preX][preY] == Caro::None) preSelected = true;
 				}
 			}
 			mousePressed = false;
@@ -251,13 +273,18 @@ int main(int argc, char** argv)
 			mouseReleased = false;
 		}
 
-		// Selected
+
+
+		////// Selected //////
 		if (selected)
 		{
-			cout << "Selected" << endl;
+			if (field[preX][preY] == Caro::None)
+			{
+				field[preX][preY] = turn;
+				turn = (turn == Caro::X) ? Caro::O : Caro::X;
+			}
 			selected = false;
 		}
-
 
 
 
@@ -298,17 +325,30 @@ int main(int argc, char** argv)
 		{
 			for (int j = 0; j < n; j++)
 			{
+				
 				if (x == i && y == j)
 				{
-					tbs.setPosition((float)i * bx.w, (float)j * bx.h);
-					tbs.move((float)mleft + ul.w, (float)mtop + ul.h);
-					window.draw(tbs);
+					Sprite& _draw = (field[i][j] == Caro::X) ? tbxs : ((field[i][j] == Caro::O) ? tbos : tbs);
+					_draw.setPosition((float)i * bx.w, (float)j * bx.h);
+					_draw.move((float)mleft + ul.w, (float)mtop + ul.h);
+					window.draw(_draw);
 				}
 				else
 				{
-					tb.setPosition((float)i * bx.w, (float)j * bx.h);
-					tb.move((float)mleft + ul.w, (float)mtop + ul.h);
-					window.draw(tb);
+					Sprite& _draw = (field[i][j] == Caro::X) ? tbx : ((field[i][j] == Caro::O) ? tbo : tb);
+					_draw.setPosition((float)i * bx.w, (float)j * bx.h);
+					_draw.move((float)mleft + ul.w, (float)mtop + ul.h);
+					window.draw(_draw);
+				}
+				if (preSelected)
+				{
+					if (i == preX && j == preY)
+					{
+						Sprite& _draw = (turn == Caro::X) ? tbxs : tbos;
+						_draw.setPosition((float)i * bx.w, (float)j * bx.h);
+						_draw.move((float)mleft + ul.w, (float)mtop + ul.h);
+						window.draw(_draw);
+					}
 				}
 			}
 		}
@@ -316,12 +356,14 @@ int main(int argc, char** argv)
 
 		window.display();
 	}
-
+	
 	for (int i = 0; i < m; i++)
 	{
 		delete[] field[i];
 	}
 	delete[] field;
+
+	//*/
 
 	return EXIT_SUCCESS;
 }
