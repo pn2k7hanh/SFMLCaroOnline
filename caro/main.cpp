@@ -8,10 +8,16 @@
 #include <Windows.h>
 #include <iostream>
 #include <map>
+#include <thread>
 
 using namespace std;
 using namespace sf;
 
+bool joined = false;
+const char* joinip;
+short joinport;
+
+unsigned short defaultIp = 33327;
 
 int main(int argc, char** argv)
 {
@@ -19,7 +25,49 @@ int main(int argc, char** argv)
 	for (int i = 1; i < argc; i++)
 	{
 		const char* str=argv[i];
-		//if()
+		if (strcmp(str, "--help"))
+		{
+			cout << "Help" << endl;
+			return EXIT_SUCCESS;
+		}
+		else if (strcmp(str, "--join"))
+		{
+			if (i + 2 < argc)
+			{
+				joinip = argv[i + 1];
+				joinport = atoi(argv[i + 2]);
+			}
+			else if (i + 1 < argc)
+			{
+				joinip = argv[i + 1];
+				joinport = defaultIp;
+			}
+			else
+			{
+				cerr << "Error: no ip" << endl;
+				return EXIT_FAILURE;
+			}
+			joined = true;
+			break;
+		}
+		else if (strcmp(str, "--port"))
+		{
+			if (i + 1 < argc)
+			{
+				defaultIp = atoi(argv[i + 1]);
+			}
+			else
+			{
+				cerr << "Error: no port" << endl;
+				return EXIT_FAILURE;
+			}
+			break;
+		}
+		else
+		{
+			cerr << "Error: Unknowed option \"" << argv[i] << "\"" << endl;
+			return EXIT_FAILURE;
+		}
 	}
 
 	
@@ -63,9 +111,9 @@ int main(int argc, char** argv)
 
 	window.setKeyRepeatEnabled(false);
 	
+	window.setVisible(false);
+
 	Clock clock;
-
-
 
 	// Mouse Event
 	int preX = 0, preY = 0;
@@ -106,17 +154,72 @@ int main(int argc, char** argv)
 	}
 
 	// Networking
+	Mutex started;
+	started.lock();
+
+	Mutex mreceived;
 	bool received = false;
+	Mutex mlistened;
+	bool listened = false;
+
+
+
 	UdpSocket *socket;
+
+	Thread network([&](UdpSocket *socket, const bool& listened) {
+		// Bind
+		clog << "Log: Opening at default port (33327)..." << endl;
+		if (Socket::Status::Done != socket->bind(33327)) clog << "Log: Successfully opened at port 33327!" << endl;
+		else
+		{
+			int randomPort;
+			while (Socket::Status::Done != socket->bind(Socket::AnyPort))
+			{
+				cerr << "Error: Failed to open at port " << socket->getLocalPort() << "!" << endl;
+			}
+			clog << "Log: Successfully opened at port " << socket->getLocalPort() << "!" << endl;
+
+		}
+		
+		socket->setBlocking(true);
+
+
+		bool connected = false;
+		unsigned short localPort;
+
+		char cData[] = "connect algori";
+
+		if (joined)
+		{
+			socket->send(cData, sizeof(cData), IpAddress(joinip), joinport);
+		}
+
+		while ([&]() {mlistened.lock(); bool tmp = listened; mlistened.unlock(); return tmp; }())
+		{
+			Packet data;
+			IpAddress ip;
+			unsigned short port;
+			if (Socket::Status::Done == socket->receive(data,ip,port))
+			{
+				const char* rdata = static_cast<const char*>(data.getData());
+				if (strcmp(rdata,cData))
+				{
+
+				}
+			}
+		}
+
+	},listened);
+
 	if (online)
 	{
 		socket = new UdpSocket;
-		Socket::Status status = socket->bind(33327);
-
+		network.launch();
 	}
 	
 	
 
+	started.lock();
 	while (window.isOpen())
 	{
 		int time = clock.getElapsedTime().asMilliseconds();
@@ -303,7 +406,7 @@ int main(int argc, char** argv)
 		}
 
 
-
+		//sf::sleep(sf::milliseconds(100));
 
 		////// Draw //////
 		

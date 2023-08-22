@@ -9,14 +9,10 @@ using namespace sf;
 
 int main()
 {
-    UdpSocket socket;
-    socket.bind(12346);
-    socket.setBlocking(true);
-    Packet packet;
-    IpAddress ip;
-    unsigned short port;
-    socket.receive(packet,ip,port);
-    cout << (char*)(packet.getData());
+    for (int i = 0; i < 3; cout << "step" << endl,i++)
+    {
+        cout << "inside" << endl;
+    }
 
     return 0;
 }
