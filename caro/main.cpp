@@ -1,5 +1,5 @@
 ﻿#include <SFML/Graphics.hpp>
-
+#include <SFML/Network.hpp>
 
 #include "resource.h"
 #include "images.h"
@@ -9,24 +9,30 @@
 #include <iostream>
 #include <map>
 
-
 using namespace std;
 using namespace sf;
 
 
 int main(int argc, char** argv)
 {
-	
 
+	for (int i = 1; i < argc; i++)
+	{
+		const char* str=argv[i];
+		//if()
+	}
+
+	
+	
+	
 	const int mtop = 20;
 	const int mleft = 30;
 	const int mright = 40;
 	const int mbottom = 50;
+
+	int m = 20, n = 20;
+	bool online = false;
 	
-	int m, n;
-	//cin >> m >> n;
-	m = 20;
-	n = 20;
 
 	RenderWindow window(VideoMode(
 		mtop+mbottom+ul.w+dr.w+bx.w*n,
@@ -99,6 +105,16 @@ int main(int argc, char** argv)
 		}
 	}
 
+	// Networking
+	bool received = false;
+	UdpSocket *socket;
+	if (online)
+	{
+		socket = new UdpSocket;
+		Socket::Status status = socket->bind(33327);
+
+	}
+	
 	
 
 	while (window.isOpen())
