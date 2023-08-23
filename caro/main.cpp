@@ -1,4 +1,5 @@
-﻿#include <SFML/Graphics.hpp>
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
 
 #include "resource.h"
@@ -8,7 +9,6 @@
 #include <Windows.h>
 #include <iostream>
 #include <map>
-#include <thread>
 
 using namespace std;
 using namespace sf;
@@ -16,21 +16,22 @@ using namespace sf;
 bool joined = false;
 const char* joinip;
 short joinport;
+bool online = true;
 
-unsigned short defaultIp = 33327;
+unsigned short defaultPort = 33327;
 
 int main(int argc, char** argv)
 {
 
 	for (int i = 1; i < argc; i++)
 	{
-		const char* str=argv[i];
-		if (strcmp(str, "--help"))
+		const char* str = argv[i];
+		if (strcmp(str, "--help") == 0)
 		{
 			cout << "Help" << endl;
 			return EXIT_SUCCESS;
 		}
-		else if (strcmp(str, "--join"))
+		else if (strcmp(str, "--join") == 0)
 		{
 			if (i + 2 < argc)
 			{
@@ -40,26 +41,26 @@ int main(int argc, char** argv)
 			else if (i + 1 < argc)
 			{
 				joinip = argv[i + 1];
-				joinport = defaultIp;
+				joinport = defaultPort;
 			}
 			else
 			{
-				cerr << "Error: no ip" << endl;
+				cerr << "Error: no input ip" << endl;
 				return EXIT_FAILURE;
 			}
+			online = true;
 			joined = true;
 			break;
 		}
-		else if (strcmp(str, "--port"))
+		else if (strcmp(str, "--online") == 0)
 		{
 			if (i + 1 < argc)
 			{
-				defaultIp = atoi(argv[i + 1]);
+				defaultPort = atoi(argv[i + 1]);
 			}
 			else
 			{
-				cerr << "Error: no port" << endl;
-				return EXIT_FAILURE;
+				clog << "Log: Using port 33327" << endl;
 			}
 			break;
 		}
@@ -79,14 +80,8 @@ int main(int argc, char** argv)
 	const int mbottom = 50;
 
 	int m = 20, n = 20;
-	bool online = false;
 	
 
-	RenderWindow window(VideoMode(
-		mtop+mbottom+ul.w+dr.w+bx.w*n,
-		mleft+mright+ul.h+dr.h+bx.h*m),"Caro",Style::Titlebar | Style::Close);
-	window.setTitle("Caro Online");
-	window.setSize(Vector2u(mtop+mbottom+ul.w+dr.w+bx.w*n,mleft+mright+ul.h+dr.h+bx.h*m));
 
 	InitImage();
 	InitTexture();
@@ -109,9 +104,8 @@ int main(int argc, char** argv)
 			tbos(*GetTexture(Tex::BoxOs)),
 			tbs(*GetTexture(Tex::BoxS));
 
-	window.setKeyRepeatEnabled(false);
 	
-	window.setVisible(false);
+	//window.setVisible(false);
 
 	Clock clock;
 
@@ -154,72 +148,95 @@ int main(int argc, char** argv)
 	}
 
 	// Networking
-	Mutex started;
-	started.lock();
 
-	Mutex mreceived;
+	bool connected = false;
 	bool received = false;
-	Mutex mlistened;
-	bool listened = false;
+	bool sent = false;
 
+	IpAddress pip;
+	unsigned short pport;
 
+	int nx = 0, ny = 0;
 
-	UdpSocket *socket;
-
-	Thread network([&](UdpSocket *socket, const bool& listened) {
-		// Bind
-		clog << "Log: Opening at default port (33327)..." << endl;
-		if (Socket::Status::Done != socket->bind(33327)) clog << "Log: Successfully opened at port 33327!" << endl;
-		else
-		{
-			int randomPort;
-			while (Socket::Status::Done != socket->bind(Socket::AnyPort))
-			{
-				cerr << "Error: Failed to open at port " << socket->getLocalPort() << "!" << endl;
-			}
-			clog << "Log: Successfully opened at port " << socket->getLocalPort() << "!" << endl;
-
-		}
-		
-		socket->setBlocking(true);
-
-
-		bool connected = false;
-		unsigned short localPort;
-
-		char cData[] = "connect algori";
-
-		if (joined)
-		{
-			socket->send(cData, sizeof(cData), IpAddress(joinip), joinport);
-		}
-
-		while ([&]() {mlistened.lock(); bool tmp = listened; mlistened.unlock(); return tmp; }())
-		{
-			Packet data;
-			IpAddress ip;
-			unsigned short port;
-			if (Socket::Status::Done == socket->receive(data,ip,port))
-			{
-				const char* rdata = static_cast<const char*>(data.getData());
-				if (strcmp(rdata,cData))
-				{
-
-				}
-			}
-		}
-
-	},listened);
+	UdpSocket* socket = new UdpSocket;
+	socket->bind(defaultPort);
 
 	if (online)
 	{
-		socket = new UdpSocket;
-		network.launch();
+		socket->setBlocking(true);
+		if (joined)
+		{
+			char cdata[] = "connect algori\n";
+			socket->send(cdata, sizeof(cdata), IpAddress(joinip), joinport);
+			char* data = new char[1024];
+			size_t size;
+			clog << "Connecting to " << joinip << ":" << joinport << ",please wait..." << endl;
+			if (Socket::Status::Done == socket->receive(data, sizeof(*data) * 1023, size, pip, pport))
+			{
+				if (strstr(data, "connect algori") != nullptr)
+				{
+					socket->send(cdata, sizeof(cdata), IpAddress(joinip), joinport);
+					connected = true;
+					turn = Caro::O;
+					delete[]data;
+				}
+				else
+				{
+					delete[]data;
+					cerr << "Couldn't connect to " << joinip << ":" << joinport << endl;
+					return EXIT_FAILURE;
+				}
+			}
+			else
+			{
+				delete[]data;
+				cerr << "Couldn't connect to " << joinip << ":" << joinport << endl;
+				return EXIT_FAILURE;
+			}
+		}
+		else
+		{
+			char* data = new char[1024];
+			size_t size;
+			clog << "Waiting for connection, please wait..." << endl;
+			if (Socket::Status::Done == socket->receive(data, sizeof(*data) * 1023, size, pip, pport))
+			{
+				if (strstr(data, "connect algori") != nullptr)
+				{
+					char cdata[] = "connect algori\n";
+					socket->send(cdata, sizeof(cdata), pip, pport);
+					clog << pip << ":" << pport << " connected" << endl;
+					connected = true;
+				}
+				else
+				{
+					delete[]data;
+					cerr << "Error: Invail packet" << endl;
+					return EXIT_FAILURE;
+				}
+			}
+			else
+			{
+				delete[]data;
+				cerr << "Error: No connection" << endl;
+				return EXIT_FAILURE;
+			}
+		}
+		socket->setBlocking(false);
 	}
 	
-	
 
-	started.lock();
+
+	socket->setBlocking(false);
+
+	RenderWindow window(VideoMode(
+		mtop + mbottom + ul.w + dr.w + bx.w * n,
+		mleft + mright + ul.h + dr.h + bx.h * m), "Caro", Style::Titlebar | Style::Close);
+	window.setTitle("Caro Online");
+	window.setSize(Vector2u(mtop + mbottom + ul.w + dr.w + bx.w * n, mleft + mright + ul.h + dr.h + bx.h * m));
+
+	window.setKeyRepeatEnabled(false);
+
 	while (window.isOpen())
 	{
 		int time = clock.getElapsedTime().asMilliseconds();
@@ -393,20 +410,75 @@ int main(int argc, char** argv)
 		}
 
 
+		////// Receive Data
+		if (online)
+		{
+			char* data = new char[1024];
+			size_t size;
+			IpAddress ip;
+			unsigned short port;
+			Socket::Status status = socket->receive(data, sizeof(*data) * 1023, size, ip, port);
+			data[size] = '\0';
+			if (Socket::Status::Done == status)
+			{
+				if (ip != pip)
+				{
+					cerr << "Error: " << ip << ":" << port << " try to break the game!" << endl;
+				}
+				else if (strstr(data, "connect algori") == nullptr)
+				{
+					char* token = strtok(data, " ");
+					if (strcmp(token, "c") == 0)
+					{
+						token = strtok(nullptr, " ");
+						preX = atoi(token);
+						token = strtok(nullptr, " ");
+						preY = atoi(token);
+						received = true;
+						selected = true;
+						cout << preX << " " << preY << endl;
+					}
+				}
+			}
+		}
+
 
 		////// Selected //////
 		if (selected)
 		{
-			if (field[preX][preY] == Caro::None)
+			bool check = false;
+
+			if (online)
+				if (joined)
+					if (turn == Caro::O) check = true; else;
+				else
+					if (turn == Caro::X) check = true; else;
+			else;
+
+
+			if (check ^ received)
 			{
-				field[preX][preY] = turn;
-				turn = (turn == Caro::X) ? Caro::O : Caro::X;
+				if (field[preX][preY] == Caro::None)
+				{
+					field[preX][preY] = turn;
+					turn = (turn == Caro::X) ? Caro::O : Caro::X;
+				}
 			}
 			selected = false;
 		}
 
+		////// Send data
+		if (online)
+		{
+			char* data = new char[1024];
+			size_t size;
+			IpAddress ip;
+			unsigned short port;
+			Socket::Status status = socket->receive(data, sizeof(*data) * 1023, size, ip, port);
+		}
 
-		//sf::sleep(sf::milliseconds(100));
+
+
 
 		////// Draw //////
 		
