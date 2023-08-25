@@ -67,6 +67,7 @@ int main(int argc, char** argv)
 			else
 			{
 				clog << "Log: Using port 33327" << endl;
+				online = true;
 			}
 			//break;
 		}
@@ -176,57 +177,64 @@ int main(int argc, char** argv)
 			socket->send(cdata, sizeof(cdata), IpAddress(joinip), joinport);
 			char* data = new char[1024];
 			size_t size;
-			clog << "Connecting to " << joinip << ":" << joinport << ",please wait..." << endl;
-			if (Socket::Status::Done == socket->receive(data, sizeof(*data) * 1023, size, pip, pport))
+			clog << "Log: Connecting to " << joinip << ":" << joinport << ", please wait..." << endl;
+
+			do
 			{
-				if (strstr(data, "connect algori") != nullptr)
-				{
-					socket->send(cdata, sizeof(cdata), IpAddress(joinip), joinport);
-					connected = true;
-					//turn = Caro::O;
-					delete[]data;
-				}
-				else
+				Socket::Status status = socket->receive(data, sizeof(*data) * 1023, size, pip, pport);
+				if (Socket::Status::Done != status)
 				{
 					delete[]data;
-					cerr << "Couldn't connect to " << joinip << ":" << joinport << endl;
+					cerr << "Error: Couldn't receive data from socket!" << endl;
+					clog << "Log: Exit caro!" << endl;
 					return EXIT_FAILURE;
 				}
+			} while (pip != joinip || pport != joinport);
+
+			data[size] = '\0';
+
+			if (strstr(data, "connect algori") != nullptr)
+			{
+				socket->send(cdata, sizeof(cdata), IpAddress(joinip), joinport);
+				connected = true;
+				delete[]data;
+				clog << "Log: Connect to " << joinip << ":" << joinport << " successfully! Have fun ^_^!" << endl;
 			}
 			else
 			{
 				delete[]data;
-				cerr << "Couldn't connect to " << joinip << ":" << joinport << endl;
+				cerr << "Error: Couldn't connect to " << joinip << ":" << joinport << endl;
+				clog << "Log: Exit caro!" << endl;
 				return EXIT_FAILURE;
 			}
 		}
 		else
 		{
+			char cdata[] = "connect algori\n";
 			char* data = new char[1024];
 			size_t size;
 			clog << "Waiting for connection, please wait..." << endl;
-			if (Socket::Status::Done == socket->receive(data, sizeof(*data) * 1023, size, pip, pport))
+
+			do
 			{
-				if (strstr(data, "connect algori") != nullptr)
-				{
-					char cdata[] = "connect algori\n";
-					socket->send(cdata, sizeof(cdata), pip, pport);
-					clog << pip << ":" << pport << " connected" << endl;
-					connected = true;
-				}
-				else
+				Socket::Status status = socket->receive(data, sizeof(*data) * 1023, size, pip, pport);
+				data[size] = '\0';
+				if (Socket::Status::Done != status)
 				{
 					delete[]data;
-					cerr << "Error: Invail packet" << endl;
+					cerr << "Error: Couldn't receive data from socket!" << endl;
+					clog << "Log: Exit caro!" << endl;
 					return EXIT_FAILURE;
 				}
-			}
-			else
-			{
-				delete[]data;
-				cerr << "Error: No connection" << endl;
-				return EXIT_FAILURE;
-			}
+
+			} while (strstr(data, "connect algori") == nullptr);
+
+			clog << "Log: Connecting to " << pip << ":" << pport << "!" << endl;
+			socket->send(cdata, sizeof(cdata), IpAddress(pip), pport);
+
+			delete[]data;
+
+
 		}
 		socket->setBlocking(false);
 	}
@@ -427,9 +435,9 @@ int main(int argc, char** argv)
 			data[size] = '\0';
 			if (Socket::Status::Done == status)
 			{
-				if (ip != pip)
+				if (ip != pip || port != pport)
 				{
-					cerr << "Error: " << ip << ":" << port << " try to break the game!" << endl;
+					cerr << "Warning: " << ip << ":" << port << " try to break the game!" << endl;
 				}
 				else if (strstr(data, "connect algori") == nullptr)
 				{
