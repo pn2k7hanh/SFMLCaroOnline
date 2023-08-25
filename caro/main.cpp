@@ -9,6 +9,7 @@
 #include <Windows.h>
 #include <iostream>
 #include <map>
+#include <string>
 
 using namespace std;
 using namespace sf;
@@ -16,9 +17,10 @@ using namespace sf;
 bool joined = false;
 const char* joinip;
 short joinport;
-bool online = true;
+bool online = false;
 
 unsigned short defaultPort = 33327;
+
 
 int main(int argc, char** argv)
 {
@@ -37,11 +39,13 @@ int main(int argc, char** argv)
 			{
 				joinip = argv[i + 1];
 				joinport = atoi(argv[i + 2]);
+				i += 2;
 			}
 			else if (i + 1 < argc)
 			{
 				joinip = argv[i + 1];
 				joinport = defaultPort;
+				i++;
 			}
 			else
 			{
@@ -50,19 +54,21 @@ int main(int argc, char** argv)
 			}
 			online = true;
 			joined = true;
-			break;
+			//break;
 		}
 		else if (strcmp(str, "--online") == 0)
 		{
 			if (i + 1 < argc)
 			{
 				defaultPort = atoi(argv[i + 1]);
+				online = true;
+				i++;
 			}
 			else
 			{
 				clog << "Log: Using port 33327" << endl;
 			}
-			break;
+			//break;
 		}
 		else
 		{
@@ -159,10 +165,10 @@ int main(int argc, char** argv)
 	int nx = 0, ny = 0;
 
 	UdpSocket* socket = new UdpSocket;
-	socket->bind(defaultPort);
 
 	if (online)
 	{
+		socket->bind(defaultPort);
 		socket->setBlocking(true);
 		if (joined)
 		{
@@ -177,7 +183,7 @@ int main(int argc, char** argv)
 				{
 					socket->send(cdata, sizeof(cdata), IpAddress(joinip), joinport);
 					connected = true;
-					turn = Caro::O;
+					//turn = Caro::O;
 					delete[]data;
 				}
 				else
@@ -436,7 +442,6 @@ int main(int argc, char** argv)
 						preY = atoi(token);
 						received = true;
 						selected = true;
-						cout << preX << " " << preY << endl;
 					}
 				}
 			}
@@ -446,6 +451,7 @@ int main(int argc, char** argv)
 		////// Selected //////
 		if (selected)
 		{
+			// In online mode, check = true if it's your turn
 			bool check = false;
 
 			if (online)
@@ -453,7 +459,7 @@ int main(int argc, char** argv)
 					if (turn == Caro::O) check = true; else;
 				else
 					if (turn == Caro::X) check = true; else;
-			else;
+			else check = true;
 
 
 			if (check ^ received)
@@ -462,19 +468,29 @@ int main(int argc, char** argv)
 				{
 					field[preX][preY] = turn;
 					turn = (turn == Caro::X) ? Caro::O : Caro::X;
+					if (check)
+					{
+						nx = preX;
+						ny = preY;
+						sent = true;
+					}
 				}
 			}
+
+
 			selected = false;
+			received = false;
 		}
 
 		////// Send data
 		if (online)
 		{
-			char* data = new char[1024];
-			size_t size;
-			IpAddress ip;
-			unsigned short port;
-			Socket::Status status = socket->receive(data, sizeof(*data) * 1023, size, ip, port);
+			if (sent)
+			{
+				string data = "c " + to_string(nx) + " " + to_string(ny) + "\n";
+				socket->send(data.c_str(), sizeof(char)* (data.size() + 1), pip, pport);
+				sent = false;
+			}
 		}
 
 
