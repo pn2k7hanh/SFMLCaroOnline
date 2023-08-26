@@ -1,5 +1,4 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
-#include <SFML/Graphics.hpp>
+﻿#include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
 
 #include "resource.h"
@@ -17,7 +16,7 @@ using namespace sf;
 bool joined = false;
 const char* joinip;
 short joinport;
-bool online = false;
+bool online = true;
 
 unsigned short defaultPort = 33327;
 
@@ -239,10 +238,10 @@ int main(int argc, char** argv)
 		socket->setBlocking(false);
 	}
 	
-
-
 	socket->setBlocking(false);
 
+
+	// Window
 	RenderWindow window(VideoMode(
 		mtop + mbottom + ul.w + dr.w + bx.w * n,
 		mleft + mright + ul.h + dr.h + bx.h * m), "Caro", Style::Titlebar | Style::Close);
@@ -251,7 +250,10 @@ int main(int argc, char** argv)
 
 	window.setKeyRepeatEnabled(false);
 
-	while (window.isOpen())
+	bool closed = false;
+
+
+	while (!closed)
 	{
 		int time = clock.getElapsedTime().asMilliseconds();
 
@@ -271,7 +273,7 @@ int main(int argc, char** argv)
 			switch (event.type)
 			{
 			case Event::Closed:
-				window.close();
+				closed = true;
 				break;
 			case Event::MouseMoved:
 				mouseMoved = true;
@@ -423,7 +425,6 @@ int main(int argc, char** argv)
 			mouseReleased = false;
 		}
 
-
 		////// Receive Data
 		if (online)
 		{
@@ -441,15 +442,24 @@ int main(int argc, char** argv)
 				}
 				else if (strstr(data, "connect algori") == nullptr)
 				{
-					char* token = strtok(data, " ");
-					if (strcmp(token, "c") == 0)
+					if (strstr(data, "caro") != nullptr)
 					{
-						token = strtok(nullptr, " ");
-						preX = atoi(token);
-						token = strtok(nullptr, " ");
-						preY = atoi(token);
-						received = true;
-						selected = true;
+						char* token = strtok(data, " ");
+						if (strcmp(token, "caro") == 0)
+						{
+							token = strtok(nullptr, " ");
+							preX = atoi(token);
+							token = strtok(nullptr, " ");
+							preY = atoi(token);
+							received = true;
+							selected = true;
+						}
+					}
+					else if (strstr(data, "disconnect") != nullptr)
+					{
+						clog << "Log: " << pip << ":" << pport << " has been disconnected!" << endl;
+						clog << "Log: You won!" << endl;
+						closed = true;
 					}
 				}
 			}
@@ -495,13 +505,26 @@ int main(int argc, char** argv)
 		{
 			if (sent)
 			{
-				string data = "c " + to_string(nx) + " " + to_string(ny) + "\n";
-				socket->send(data.c_str(), sizeof(char)* (data.size() + 1), pip, pport);
+				string data = "caro " + to_string(nx) + " " + to_string(ny) + "\n";
+				Socket::Status status;
+				do
+				{
+					status = socket->send(data.c_str(), sizeof(char) * (data.size() + 1), pip, pport);
+				} while (status != Socket::Status::Done);
 				sent = false;
+			}
+			if (closed)
+			{
+				char data[] = "disconnect\n";
+				socket->send(data, sizeof(data), pip, pport);
 			}
 		}
 
 
+		if (closed)
+		{
+			window.close();
+		}
 
 
 		////// Draw //////
