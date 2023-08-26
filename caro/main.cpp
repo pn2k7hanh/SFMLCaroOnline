@@ -252,6 +252,7 @@ int main(int argc, char** argv)
 
 	bool closed = false;
 
+	ShowWindow(GetConsoleWindow(), SW_HIDE);
 
 	while (!closed)
 	{
