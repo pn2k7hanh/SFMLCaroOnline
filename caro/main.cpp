@@ -16,7 +16,7 @@ using namespace sf;
 bool joined = false;
 const char* joinip;
 short joinport;
-bool online = true;
+bool online = false;
 
 unsigned short defaultPort = 33327;
 
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 			cout << "Help" << endl;
 			return EXIT_SUCCESS;
 		}
-		else if (strcmp(str, "--join") == 0)
+		else if (strcmp(str, "--join") == 0 || strcmp(str, "-j") == 0)
 		{
 			if (i + 2 < argc)
 			{
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 			joined = true;
 			//break;
 		}
-		else if (strcmp(str, "--online") == 0)
+		else if (strcmp(str, "--online") == 0 || strcmp(str, "-o") == 0)
 		{
 			if (i + 1 < argc)
 			{
@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 	
 	
 	const int mtop = 20;
-	const int mleft = 30;
+	const int mleft = 80;
 	const int mright = 40;
 	const int mbottom = 50;
 
@@ -243,10 +243,10 @@ int main(int argc, char** argv)
 
 	// Window
 	RenderWindow window(VideoMode(
-		mtop + mbottom + ul.w + dr.w + bx.w * n,
-		mleft + mright + ul.h + dr.h + bx.h * m), "Caro", Style::Titlebar | Style::Close);
-	window.setTitle("Caro Online");
-	window.setSize(Vector2u(mtop + mbottom + ul.w + dr.w + bx.w * n, mleft + mright + ul.h + dr.h + bx.h * m));
+		mleft + mright + ul.w + dr.w + bx.w * n,
+		mtop + mbottom + ul.h + dr.h + bx.h * m), "Caro", Style::Titlebar | Style::Close);
+	if (online) window.setTitle("Caro Online");
+	//window.setSize(Vector2u(mtop + mbottom + ul.w + dr.w + bx.w * n, mleft + mright + ul.h + dr.h + bx.h * m));
 
 	window.setKeyRepeatEnabled(false);
 
@@ -603,6 +603,7 @@ int main(int argc, char** argv)
 	delete[] field;
 
 	//*/
+	 
 
 	return EXIT_SUCCESS;
 }
