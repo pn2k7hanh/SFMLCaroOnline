@@ -81,9 +81,9 @@ int main(int argc, char** argv)
 	
 	
 	const int mtop = 20;
-	const int mleft = 80;
-	const int mright = 40;
-	const int mbottom = 50;
+	const int mleft = 20;
+	const int mright = 20;
+	const int mbottom = 20;
 
 	int m = 20, n = 20;
 	
@@ -135,23 +135,6 @@ int main(int argc, char** argv)
 	int dx = 0, dy = 0;
 	bool selected = false;
 
-	// Field
-	enum class Caro
-	{
-		X,
-		O,
-		None
-	} **field, turn = Caro::X;
-
-	field = new Caro* [m];
-	for (int i = 0; i < m; i++)
-	{
-		field[i] = new Caro[n];
-		for (int j = 0; j < n; j++)
-		{
-			field[i][j] = Caro::None;
-		}
-	}
 
 	// Networking
 
@@ -194,7 +177,6 @@ int main(int argc, char** argv)
 
 			if (strstr(data, "connect algori") != nullptr)
 			{
-				socket->send(cdata, sizeof(cdata), IpAddress(joinip), joinport);
 				connected = true;
 				delete[]data;
 				clog << "Log: Connect to " << joinip << ":" << joinport << " successfully! Have fun ^_^!" << endl;
@@ -230,6 +212,9 @@ int main(int argc, char** argv)
 
 			clog << "Log: Connecting to " << pip << ":" << pport << "!" << endl;
 			socket->send(cdata, sizeof(cdata), IpAddress(pip), pport);
+			string size = "size " + to_string(m) + " " + to_string(n) + "\n";
+			socket->send(size.c_str(), sizeof(char) * (size.size() + 1), pip, pport);
+
 
 			delete[]data;
 
@@ -240,6 +225,23 @@ int main(int argc, char** argv)
 	
 	socket->setBlocking(false);
 
+	// Field
+	enum class Caro
+	{
+		X,
+		O,
+		None
+	} **field, turn = Caro::X;
+
+	field = new Caro * [m];
+	for (int i = 0; i < m; i++)
+	{
+		field[i] = new Caro[n];
+		for (int j = 0; j < n; j++)
+		{
+			field[i][j] = Caro::None;
+		}
+	}
 
 	// Window
 	RenderWindow window(VideoMode(
