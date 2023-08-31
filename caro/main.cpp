@@ -212,8 +212,8 @@ int main(int argc, char** argv)
 
 			clog << "Log: Connecting to " << pip << ":" << pport << "!" << endl;
 			socket->send(cdata, sizeof(cdata), IpAddress(pip), pport);
-			string size = "size " + to_string(m) + " " + to_string(n) + "\n";
-			socket->send(size.c_str(), sizeof(char) * (size.size() + 1), pip, pport);
+			string board = "field " + to_string(m) + " " + to_string(n) + "\n";
+			socket->send(board.c_str(), sizeof(char) * (board.size() + 1), pip, pport);
 
 
 			delete[]data;
