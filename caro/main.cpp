@@ -19,7 +19,7 @@ short joinport;
 bool online = false;
 
 unsigned short defaultPort = 33327;
-
+int rows = 18, columes = 18;
 
 int main(int argc, char** argv)
 {
@@ -27,9 +27,22 @@ int main(int argc, char** argv)
 	for (int i = 1; i < argc; i++)
 	{
 		const char* str = argv[i];
-		if (strcmp(str, "--help") == 0)
+		if (strcmp(str, "--help") == 0 || strcmp(str, "-h") == 0)
 		{
-			cout << "Help" << endl;
+			cout <<
+				"Usage: \"" << argv[0] << "\" [option]\n"
+				"    -j --join <ip address> <port>    Enter online mode and join a game in LAN.\n"
+				"                                     (leave 2nd argument blank for default port)"
+				"    -o --online <port>               Enter online mode and open a game in LAN.\n"
+				"                                      (leave blank for default port)\n"
+				"    -f --field <rows> <columes>      Customize the number of rows and columes.\n"
+				"\n"
+				"Default value:\n"
+				"    port = 33327\n"
+				"    online = false\n"
+				"    rows = 18\n"
+				"    columes = 18\n"
+				<< endl;
 			return EXIT_SUCCESS;
 		}
 		else if (strcmp(str, "--join") == 0 || strcmp(str, "-j") == 0)
@@ -48,7 +61,8 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				cerr << "Error: no input ip" << endl;
+				cerr << "Error: missing 1 required argument." << endl;
+				cout << "Usage: " << argv[0] << " -j, --join <ip address> <port>" << endl;
 				return EXIT_FAILURE;
 			}
 			online = true;
@@ -85,7 +99,7 @@ int main(int argc, char** argv)
 	const int mright = 20;
 	const int mbottom = 20;
 
-	int m = 20, n = 20;
+	int m = rows, n = columes;
 	
 
 
@@ -243,18 +257,26 @@ int main(int argc, char** argv)
 		}
 	}
 
-	// Window
 	RenderWindow window(VideoMode(
 		mleft + mright + ul.w + dr.w + bx.w * n,
 		mtop + mbottom + ul.h + dr.h + bx.h * m), "Caro", Style::Titlebar | Style::Close);
+
+	 /*
+	RenderWindow window;
+	window.create(WindowHandle(1901394)); // replace with id window
+	window.setSize(Vector2u(mleft + mright + ul.w + dr.w + bx.w * n, mtop + mbottom + ul.h + dr.h + bx.h * m));
+	// */
+	
+
 	if (online) window.setTitle("Caro Online");
 	//window.setSize(Vector2u(mtop + mbottom + ul.w + dr.w + bx.w * n, mleft + mright + ul.h + dr.h + bx.h * m));
+
 
 	window.setKeyRepeatEnabled(false);
 
 	bool closed = false;
 
-	ShowWindow(GetConsoleWindow(), SW_HIDE);
+	//ShowWindow(GetConsoleWindow(), SW_HIDE);
 
 	while (!closed)
 	{

@@ -1,4 +1,5 @@
 ﻿#include <SFML/Network.hpp>
+#include <SFML/Graphics.hpp>
 
 #include <iostream>
 #include <Windows.h>
@@ -9,10 +10,12 @@ using namespace sf;
 
 int main()
 {
-    for (int i = 0; i < 3; cout << "step" << endl,i++)
-    {
-        cout << "inside" << endl;
-    }
+    RenderWindow window;
+
+    //window.create(VideoMode(100, 100), "Hehe");
+    window.create(WindowHandle(328366));
+
+    while (true);
 
     return 0;
 }
