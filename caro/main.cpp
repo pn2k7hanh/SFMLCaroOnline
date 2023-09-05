@@ -19,7 +19,7 @@ short joinport;
 bool online = false;
 
 unsigned short defaultPort = 33327;
-int rows = 18, columes = 18;
+int rows = 19, columes = 18;
 
 int main(int argc, char** argv)
 {
@@ -84,6 +84,26 @@ int main(int argc, char** argv)
 			}
 			//break;
 		}
+		else if (strcmp(str, "--field") == 0 || strcmp(str, "-f") == 0)
+		{
+			if (i + 2 < argc)
+			{
+				rows = atoi(argv[i + 1]);
+				columes = atoi(argv[i + 2]);
+				if (rows < 3 || columes < 3)
+				{
+					cerr << "Error: number of rows and columes must be greater than 3." << endl;
+					return EXIT_FAILURE;
+				}
+				i += 2;
+			}
+			else
+			{
+				cerr << "Error: missing " << argc - i - 1 << " required argument." << endl;
+				cout << "Usage: -f --field <rows> <columes>" << endl;
+				return EXIT_FAILURE;
+			}
+		}
 		else
 		{
 			cerr << "Error: Unknowed option \"" << argv[i] << "\"" << endl;
@@ -131,13 +151,14 @@ int main(int argc, char** argv)
 				if (Socket::Status::Done != status)
 				{
 					delete[]data;
-					cerr << "Error: Couldn't receive data from socket!" << endl;
+					cerr << "Error: Couldn't receive data from socket." << endl;
 					clog << "Log: Exit caro!" << endl;
 					return EXIT_FAILURE;
 				}
 			} while (pip != joinip || pport != joinport);
 
 			data[size] = '\0';
+			cout << "log data " << data << endl;
 
 			if (strstr(data, "connect algori") != nullptr)
 			{
@@ -148,20 +169,22 @@ int main(int argc, char** argv)
 				char* fdata = new char[1024];
 				IpAddress ip;
 				unsigned short port;
+				size_t size;
 				Socket::Status status = socket->receive(fdata, sizeof(char) * 1023, size, ip, port);
-				data[size] = '\0';
+				fdata[size] = '\0';
+				cout << "log data " << fdata << endl;
 				if (Socket::Status::Done != status)
 				{
-					cerr << "Error: Couldn't receive data from " << ip.toString() << ":" << port << "." << endl;
-					delete[]data;
+					cerr << "Error: Couldn't receive data from socket." << endl;
+					delete[]fdata;
 					return EXIT_FAILURE;
 				}
 				else
 				{
-					if (strstr(data, "caro") != nullptr)
+					if (strstr(fdata, "field") != nullptr)
 					{
-						char* token = strtok(data, " ");
-						if (strcmp(token, "caro") == 0)
+						char* token = strtok(fdata, " ");
+						if (strcmp(token, "field") == 0)
 						{
 							token = strtok(nullptr, " ");
 							rows = atoi(token);
@@ -169,8 +192,9 @@ int main(int argc, char** argv)
 							columes = atoi(token);
 						}
 					}
+					delete[]fdata;
 				}
-
+				cout << "Finished" << endl;
 			}
 			else
 			{
@@ -202,7 +226,7 @@ int main(int argc, char** argv)
 			} while (strstr(data, "connect algori") == nullptr);
 
 			clog << "Log: Connecting to " << pip << ":" << pport << "!" << endl;
-			socket->send(cdata, sizeof(cdata), IpAddress(pip), pport);
+			socket->send(cdata, sizeof(cdata), pip, pport);
 			string board = "field " + to_string(rows) + " " + to_string(columes) + "\n";
 			socket->send(board.c_str(), sizeof(char) * (board.size() + 1), pip, pport);
 
@@ -239,34 +263,6 @@ int main(int argc, char** argv)
 			tbs(*GetTexture(Tex::BoxS));
 
 
-	int m = rows, n = columes;
-
-	//window.setVisible(false);
-
-	Clock clock;
-
-	// Mouse Event
-	int preX = 0, preY = 0;
-	int oldX = (m - 1) / 2;
-	int oldY = (n - 1) / 2;
-	bool preSelected = false;
-	bool mouseMoved = false;
-	bool mousePressed = false;
-	bool mouseReleased = false;
-
-	// Key Event
-	map<Keyboard::Key, pair<int, int>> keys; // first is delay; second is time
-	int keyboardFirstDelay = 125;
-	int keyboardSecondDelay = 75;
-
-	// Select Box Move
-	int x = (m - 1) / 2;
-	int y = (n - 1) / 2;
-	int dx = 0, dy = 0;
-	bool selected = false;
-
-
-
 	// Field
 	int m = rows, n = columes;
 	enum class Caro
@@ -286,6 +282,34 @@ int main(int argc, char** argv)
 		}
 	}
 
+
+	//window.setVisible(false);
+
+	Clock clock;
+
+	// Mouse Event
+	int preX = 0, preY = 0;
+	int oldX = (m - 1) / 2;
+	int oldY = (n - 1) / 2;
+	bool preSelected = false;
+	bool mouseMoved = false;
+	bool mousePressed = false;
+	bool mouseReleased = false;
+
+	// Key Event
+	map<Keyboard::Key, pair<int, int>> keys; // first is delay; second is time
+	int keyboardFirstDelay = 125;
+	int keyboardSecondDelay = 75;
+
+	// Selected Box
+	int x = (m - 1) / 2;
+	int y = (n - 1) / 2;
+	int dx = 0, dy = 0;
+	bool selected = false;
+
+
+
+	
 	RenderWindow window(VideoMode(
 		mleft + mright + ul.w + dr.w + bx.w * n,
 		mtop + mbottom + ul.h + dr.h + bx.h * m), "Caro", Style::Titlebar | Style::Close);
@@ -432,8 +456,8 @@ int main(int argc, char** argv)
 			oldX = x;
 			oldY = y;
 
-			x = (mouse.x - mleft - ul.w) / bx.w;
-			y = (mouse.y - mtop - ul.h) / bx.h;
+			x = (mouse.y - mtop - ul.h) / bx.h;
+			y = (mouse.x - mleft - ul.w) / bx.w;
 
 
 			if (!(0 <= x && x < m && 0 <= y && y < n))
@@ -450,8 +474,8 @@ int main(int argc, char** argv)
 			if (Mouse::isButtonPressed(Mouse::Left))
 			{
 				Vector2i mouse = Mouse::getPosition(window);
-				preX = (mouse.x - mleft - ul.w) / bx.w;
-				preY = (mouse.y - mtop - ul.h) / bx.h;
+				preX = (mouse.y - mtop - ul.h) / bx.h;
+				preY = (mouse.x - mleft - ul.w) / bx.w;
 				if (0 <= preX && preX < m && 0 <= preY && preY < n)
 				{
 					if (field[preX][preY] == Caro::None) preSelected = true;
@@ -467,8 +491,8 @@ int main(int argc, char** argv)
 				if (0 <= preX && preX < m && 0 <= preY && preY < n)
 				{
 					Vector2i mouse = Mouse::getPosition(window);
-					int tmpX = (mouse.x - mleft - ul.w) / bx.w;
-					int tmpY = (mouse.y - mtop - ul.h) / bx.h;
+					int tmpX = (mouse.y - mtop - ul.h) / bx.h;
+					int tmpY = (mouse.x - mleft - ul.w) / bx.w;
 					if (preX == tmpX && preY == tmpY)
 					{
 						selected = true;
@@ -621,14 +645,14 @@ int main(int argc, char** argv)
 				if (x == i && y == j)
 				{
 					Sprite& _draw = (field[i][j] == Caro::X) ? tbxs : ((field[i][j] == Caro::O) ? tbos : tbs);
-					_draw.setPosition((float)i * bx.w, (float)j * bx.h);
+					_draw.setPosition((float)j * bx.w, (float)i * bx.h);
 					_draw.move((float)mleft + ul.w, (float)mtop + ul.h);
 					window.draw(_draw);
 				}
 				else
 				{
 					Sprite& _draw = (field[i][j] == Caro::X) ? tbx : ((field[i][j] == Caro::O) ? tbo : tb);
-					_draw.setPosition((float)i * bx.w, (float)j * bx.h);
+					_draw.setPosition((float)j * bx.w, (float)i * bx.h);
 					_draw.move((float)mleft + ul.w, (float)mtop + ul.h);
 					window.draw(_draw);
 				}
@@ -637,7 +661,7 @@ int main(int argc, char** argv)
 					if (i == preX && j == preY)
 					{
 						Sprite& _draw = (turn == Caro::X) ? tbxs : tbos;
-						_draw.setPosition((float)i * bx.w, (float)j * bx.h);
+						_draw.setPosition((float)j * bx.w, (float)i * bx.h);
 						_draw.move((float)mleft + ul.w, (float)mtop + ul.h);
 						window.draw(_draw);
 					}
