@@ -99,8 +99,122 @@ int main(int argc, char** argv)
 	const int mright = 20;
 	const int mbottom = 20;
 
-	int m = rows, n = columes;
-	
+
+	// Networking
+
+	bool connected = false;
+	bool received = false;
+	bool sent = false;
+
+	IpAddress pip;
+	unsigned short pport;
+
+	int nx = 0, ny = 0;
+
+	UdpSocket* socket = new UdpSocket;
+
+	if (online)
+	{
+		socket->bind(defaultPort);
+		socket->setBlocking(true);
+		if (joined) //////////////////////// Join //////////////////////////////////
+		{
+			char cdata[] = "connect algori\n";
+			socket->send(cdata, sizeof(cdata), IpAddress(joinip), joinport);
+			char* data = new char[1024];
+			size_t size;
+			clog << "Log: Connecting to " << joinip << ":" << joinport << ", please wait..." << endl;
+
+			do
+			{
+				Socket::Status status = socket->receive(data, sizeof(char) * 1023, size, pip, pport);
+				if (Socket::Status::Done != status)
+				{
+					delete[]data;
+					cerr << "Error: Couldn't receive data from socket!" << endl;
+					clog << "Log: Exit caro!" << endl;
+					return EXIT_FAILURE;
+				}
+			} while (pip != joinip || pport != joinport);
+
+			data[size] = '\0';
+
+			if (strstr(data, "connect algori") != nullptr)
+			{
+				connected = true;
+				clog << "Log: Connect to " << joinip << ":" << joinport << " successfully!" << endl;
+				delete[]data;
+
+				char* fdata = new char[1024];
+				IpAddress ip;
+				unsigned short port;
+				Socket::Status status = socket->receive(fdata, sizeof(char) * 1023, size, ip, port);
+				data[size] = '\0';
+				if (Socket::Status::Done != status)
+				{
+					cerr << "Error: Couldn't receive data from " << ip.toString() << ":" << port << "." << endl;
+					delete[]data;
+					return EXIT_FAILURE;
+				}
+				else
+				{
+					if (strstr(data, "caro") != nullptr)
+					{
+						char* token = strtok(data, " ");
+						if (strcmp(token, "caro") == 0)
+						{
+							token = strtok(nullptr, " ");
+							rows = atoi(token);
+							token = strtok(nullptr, " ");
+							columes = atoi(token);
+						}
+					}
+				}
+
+			}
+			else
+			{
+				delete[]data;
+				cerr << "Error: Couldn't connect to " << joinip << ":" << joinport << endl;
+				clog << "Log: Exit caro!" << endl;
+				return EXIT_FAILURE;
+			}
+		}
+		else //////////////////////// Create //////////////////////////////////
+		{
+			char cdata[] = "connect algori\n";
+			char* data = new char[1024];
+			size_t size;
+			clog << "Waiting for connection, please wait..." << endl;
+
+			do
+			{
+				Socket::Status status = socket->receive(data, sizeof(*data) * 1023, size, pip, pport);
+				data[size] = '\0';
+				if (Socket::Status::Done != status)
+				{
+					delete[]data;
+					cerr << "Error: Couldn't receive data from socket!" << endl;
+					clog << "Log: Exit caro!" << endl;
+					return EXIT_FAILURE;
+				}
+
+			} while (strstr(data, "connect algori") == nullptr);
+
+			clog << "Log: Connecting to " << pip << ":" << pport << "!" << endl;
+			socket->send(cdata, sizeof(cdata), IpAddress(pip), pport);
+			string board = "field " + to_string(rows) + " " + to_string(columes) + "\n";
+			socket->send(board.c_str(), sizeof(char) * (board.size() + 1), pip, pport);
+
+
+			delete[]data;
+
+
+		}
+		socket->setBlocking(false);
+	}
+
+	socket->setBlocking(false);
 
 
 	InitImage();
@@ -124,7 +238,9 @@ int main(int argc, char** argv)
 			tbos(*GetTexture(Tex::BoxOs)),
 			tbs(*GetTexture(Tex::BoxS));
 
-	
+
+	int m = rows, n = columes;
+
 	//window.setVisible(false);
 
 	Clock clock;
@@ -150,96 +266,9 @@ int main(int argc, char** argv)
 	bool selected = false;
 
 
-	// Networking
-
-	bool connected = false;
-	bool received = false;
-	bool sent = false;
-
-	IpAddress pip;
-	unsigned short pport;
-
-	int nx = 0, ny = 0;
-
-	UdpSocket* socket = new UdpSocket;
-
-	if (online)
-	{
-		socket->bind(defaultPort);
-		socket->setBlocking(true);
-		if (joined)
-		{
-			char cdata[] = "connect algori\n";
-			socket->send(cdata, sizeof(cdata), IpAddress(joinip), joinport);
-			char* data = new char[1024];
-			size_t size;
-			clog << "Log: Connecting to " << joinip << ":" << joinport << ", please wait..." << endl;
-
-			do
-			{
-				Socket::Status status = socket->receive(data, sizeof(*data) * 1023, size, pip, pport);
-				if (Socket::Status::Done != status)
-				{
-					delete[]data;
-					cerr << "Error: Couldn't receive data from socket!" << endl;
-					clog << "Log: Exit caro!" << endl;
-					return EXIT_FAILURE;
-				}
-			} while (pip != joinip || pport != joinport);
-
-			data[size] = '\0';
-
-			if (strstr(data, "connect algori") != nullptr)
-			{
-				connected = true;
-				delete[]data;
-				clog << "Log: Connect to " << joinip << ":" << joinport << " successfully! Have fun ^_^!" << endl;
-			}
-			else
-			{
-				delete[]data;
-				cerr << "Error: Couldn't connect to " << joinip << ":" << joinport << endl;
-				clog << "Log: Exit caro!" << endl;
-				return EXIT_FAILURE;
-			}
-		}
-		else
-		{
-			char cdata[] = "connect algori\n";
-			char* data = new char[1024];
-			size_t size;
-			clog << "Waiting for connection, please wait..." << endl;
-
-			do
-			{
-				Socket::Status status = socket->receive(data, sizeof(*data) * 1023, size, pip, pport);
-				data[size] = '\0';
-				if (Socket::Status::Done != status)
-				{
-					delete[]data;
-					cerr << "Error: Couldn't receive data from socket!" << endl;
-					clog << "Log: Exit caro!" << endl;
-					return EXIT_FAILURE;
-				}
-
-			} while (strstr(data, "connect algori") == nullptr);
-
-			clog << "Log: Connecting to " << pip << ":" << pport << "!" << endl;
-			socket->send(cdata, sizeof(cdata), IpAddress(pip), pport);
-			string board = "field " + to_string(m) + " " + to_string(n) + "\n";
-			socket->send(board.c_str(), sizeof(char) * (board.size() + 1), pip, pport);
-
-
-			delete[]data;
-
-
-		}
-		socket->setBlocking(false);
-	}
-	
-	socket->setBlocking(false);
 
 	// Field
+	int m = rows, n = columes;
 	enum class Caro
 	{
 		X,
