@@ -18,8 +18,9 @@ const char* joinip;
 short joinport;
 bool online = false;
 
-unsigned short defaultPort = 33327;
+unsigned short defaultPort = 33320;
 int rows = 19, columes = 18;
+#define bool2cstr(b) (b?"true":"false")
 
 int main(int argc, char** argv)
 {
@@ -31,17 +32,17 @@ int main(int argc, char** argv)
 		{
 			cout <<
 				"Usage: \"" << argv[0] << "\" [option]\n"
-				"    -j --join <ip address> <port>    Enter online mode and join a game in LAN.\n"
-				"                                     (leave 2nd argument blank for default port)"
-				"    -o --online <port>               Enter online mode and open a game in LAN.\n"
-				"                                      (leave blank for default port)\n"
-				"    -f --field <rows> <columes>      Customize the number of rows and columes.\n"
+				"    -j --join <ip address> <port>  Enter online mode and join a game in LAN.\n"
+				"                                   (leave 2nd argument blank for default port)"
+				"    -o --online <port>             Enter online mode and open a game in LAN.\n"
+				"                                   (leave blank for default port)\n"
+				"    -f --field <rows> <columes>    Customize the number of rows and columes.\n"
 				"\n"
 				"Default value:\n"
-				"    port = 33327\n"
-				"    online = false\n"
-				"    rows = 18\n"
-				"    columes = 18\n"
+				"    port = " << defaultPort << "\n"
+				"    online = " << bool2cstr(online) << "\n"
+				"    rows = " << rows << "\n"
+				"    columes = " << columes << "\n"
 				<< endl;
 			return EXIT_SUCCESS;
 		}
