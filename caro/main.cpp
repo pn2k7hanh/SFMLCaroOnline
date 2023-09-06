@@ -33,10 +33,12 @@ int main(int argc, char** argv)
 			cout <<
 				"Usage: \"" << argv[0] << "\" [option]\n"
 				"    -j --join <ip address> <port>  Enter online mode and join a game in LAN.\n"
-				"                                   (leave 2nd argument blank for default port)"
+				"                                   (leave 2nd argument blank for default port)\n"
 				"    -o --online <port>             Enter online mode and open a game in LAN.\n"
 				"                                   (leave blank for default port)\n"
 				"    -f --field <rows> <columes>    Customize the number of rows and columes.\n"
+				//"    -c --console true|false        Show or hide the console window when start.\n"
+				//"       --noconsole                 Equal to \"-c false\"\n"
 				"\n"
 				"Default value:\n"
 				"    port = " << defaultPort << "\n"
@@ -105,6 +107,22 @@ int main(int argc, char** argv)
 				return EXIT_FAILURE;
 			}
 		}
+		// cach nay deo on roi
+		//else if (strcmp(str, "--console") == 0 || strcmp(str, "-c") == 0)
+		//{
+		//	if (i + 1 < argc)
+		//	{
+		//		if (strcmp(argv[i + 1], "false") == 0 || strcmp(argv[i + 1], "0") == 0)
+		//		{
+		//			ShowWindow(GetConsoleWindow(), SW_HIDE);
+		//		}
+		//		i++;
+		//	}
+		//}
+		//else if (strcmp(str, "--noconsole") == 0)
+		//{
+		//	ShowWindow(GetConsoleWindow(), SW_HIDE);
+		//}
 		else
 		{
 			cerr << "Error: Unknowed option \"" << argv[i] << "\"" << endl;
@@ -159,7 +177,6 @@ int main(int argc, char** argv)
 			} while (pip != joinip || pport != joinport);
 
 			data[size] = '\0';
-			cout << "log data " << data << endl;
 
 			if (strstr(data, "connect algori") != nullptr)
 			{
@@ -173,11 +190,11 @@ int main(int argc, char** argv)
 				size_t size;
 				Socket::Status status = socket->receive(fdata, sizeof(char) * 1023, size, ip, port);
 				fdata[size] = '\0';
-				cout << "log data " << fdata << endl;
 				if (Socket::Status::Done != status)
 				{
 					cerr << "Error: Couldn't receive data from socket." << endl;
 					delete[]fdata;
+					clog << "Log: Exit caro!" << endl;
 					return EXIT_FAILURE;
 				}
 				else
@@ -195,7 +212,6 @@ int main(int argc, char** argv)
 					}
 					delete[]fdata;
 				}
-				cout << "Finished" << endl;
 			}
 			else
 			{
@@ -210,7 +226,7 @@ int main(int argc, char** argv)
 			char cdata[] = "connect algori\n";
 			char* data = new char[1024];
 			size_t size;
-			clog << "Waiting for connection, please wait..." << endl;
+			clog << "Log: Waiting for connection, please wait..." << endl;
 
 			do
 			{
@@ -317,7 +333,7 @@ int main(int argc, char** argv)
 
 	 /*
 	RenderWindow window;
-	window.create(WindowHandle(1901394)); // replace with id window
+	window.create(WindowHandle(1901394)); // replace with window id
 	window.setSize(Vector2u(mleft + mright + ul.w + dr.w + bx.w * n, mtop + mbottom + ul.h + dr.h + bx.h * m));
 	// */
 	
@@ -330,7 +346,6 @@ int main(int argc, char** argv)
 
 	bool closed = false;
 
-	//ShowWindow(GetConsoleWindow(), SW_HIDE);
 
 	while (!closed)
 	{
