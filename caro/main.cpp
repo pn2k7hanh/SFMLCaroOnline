@@ -9,6 +9,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <functional>
 
 using namespace std;
 using namespace sf;
@@ -21,6 +22,12 @@ bool online = false;
 unsigned short defaultPort = 33320;
 int rows = 19, columes = 18;
 #define bool2cstr(b) (b?"true":"false")
+
+//template <class T> bool check(T** field, const T& X, const T& O, int x, int y, int m, int n)
+//{
+//	
+//	return false;
+//}
 
 int main(int argc, char** argv)
 {
@@ -298,6 +305,22 @@ int main(int argc, char** argv)
 			field[i][j] = Caro::None;
 		}
 	}
+
+	// Check
+	bool checked = false;
+	bool winned;
+	bool losed;
+	function<bool(int, int, int, int)> check = [field, m, n](int x, int y, int dx, int dy) -> bool
+	{
+		for (int i = 0; i < m; i++)
+		{
+			for (int j = 0; j < n; j++)
+			{
+
+			}
+		}
+		return false;
+	};
 
 
 	//window.setVisible(false);
